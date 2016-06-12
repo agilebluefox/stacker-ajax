@@ -1,10 +1,10 @@
 // this function takes the question object returned by the StackOverflow request
 // and returns new result to be appended to DOM
 var showQuestion = function(question) {
-	
+
 	// clone our result template code
 	var result = $('.templates .question').clone();
-	
+
 	// Set the question properties in result
 	var questionElem = result.find('.question-text a');
 	questionElem.attr('href', question.link);
@@ -31,6 +31,35 @@ var showQuestion = function(question) {
 	return result;
 };
 
+function showAnswerer(answerer) {
+	var result = $('.template .answerer').clone();
+
+	var href = answerer.link;
+
+	var imgLink = result.find('user-image a');
+	imgLink.attr('href', href);
+
+	var image = result.find('.user-image img');
+	image.attr('src', answerer.profile_image);
+
+	var nameLink = result.find('.user-info h2 a');
+	nameLink.attr('href', href);
+	nameLink.text(answerer.user.display_name);
+
+	var userStats = result.find('.user-stats');
+	var stats = Object.create(null);
+
+	stats['Reputation'] = answerer.user.reputation;
+	stats['Score'] = answerer.score;
+	stats['Posts'] = answerer.post_count;
+		console.log(stats);
+
+	for (var prop in stats) {
+		userStats.append('<li><span>' + prop + ': </span>' + stats.prop +'</li>');
+	}
+	return result;
+}
+
 
 // this function takes the results object from StackOverflow
 // and returns the number of results and tags to be appended to DOM
@@ -49,15 +78,15 @@ var showError = function(error){
 // takes a string of semi-colon separated tags to be searched
 // for on StackOverflow
 var getUnanswered = function(tags) {
-	
+
 	// the parameters we need to pass in our request to StackOverflow's API
-	var request = { 
+	var request = {
 		tagged: tags,
 		site: 'stackoverflow',
 		order: 'desc',
 		sort: 'creation'
 	};
-	
+
 	$.ajax({
 		url: "http://api.stackexchange.com/2.2/questions/unanswered",
 		data: request,
@@ -67,7 +96,7 @@ var getUnanswered = function(tags) {
 	.done(function(result){ //this waits for the ajax to return with a succesful promise object
 		var searchResults = showSearchResults(request.tagged, result.items.length);
 
-		$('.search-results').html(searchResults);
+		renderSearchResults(searchResults);
 		//$.each is a higher order function. It takes an array and a function as an argument.
 		//The function is executed once for each item in the array.
 		$.each(result.items, function(i, item) {
@@ -81,6 +110,42 @@ var getUnanswered = function(tags) {
 	});
 };
 
+function getTopAnswerers(tag) {
+	var request = {
+		tags: tag,
+		site: 'stackoverflow',
+		period: 'all_time'
+	};
+
+	var apiUrl = 'https://api.stackexchange.com/2.2/';
+	apiUrl += 'tags/' + request.tags;
+	apiUrl += '/top-answerers/' + request.period;
+
+	$.ajax({
+		url: apiUrl,
+		data: {site: 'stackoverflow'},
+		dataType: "jsonp",
+		type: "GET"
+	})
+		.done(function(result){
+			console.log(result);
+			var searchResults = showSearchResults(result.tag, result.items.length);
+			renderSearchResults(searchResults);
+
+			$.each(result.items, function(index, item) {
+				var answerer = showAnswerer(item);
+				$('.results').append(answerer);
+			});
+		})
+		.fail(function(jqXHR, error){ //this waits for the ajax to return with an error promise object
+			var errorElem = showError(error);
+			$('.search-results').append(errorElem);
+		});
+};
+
+function renderSearchResults(searchResults) {
+	$('.search-results').html(searchResults);
+}
 
 $(document).ready( function() {
 	$('.unanswered-getter').submit( function(e){
@@ -90,5 +155,15 @@ $(document).ready( function() {
 		// get the value of the tags the user submitted
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
+	});
+
+	$('.inspiration-getter').submit( function(e) {
+		e.preventDefault();
+		$('.results').empty();
+		var tag = $(this).find("input[name='answerers']").val();
+		var re = /\b/;
+		tag = tag.split(re);
+		tag = tag[0];
+		getTopAnswerers(tag);
 	});
 });
