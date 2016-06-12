@@ -32,34 +32,27 @@ var showQuestion = function(question) {
 };
 
 function showAnswerer(answerer) {
-	var result = $('.template .answerer').clone();
-
-	var href = answerer.link;
-
-	var imgLink = result.find('user-image a');
-	imgLink.attr('href', href);
-
-	var image = result.find('.user-image img');
-	image.attr('src', answerer.profile_image);
-
+	var result = $('.templates .answerer').clone();
+	// Get the answerer image
+	var image = result.find('img.image');
+	image.attr('src', answerer.user.profile_image);
+	// Setup the h2 link and text.
 	var nameLink = result.find('.user-info h2 a');
-	nameLink.attr('href', href);
+	nameLink.attr('href', answerer.user.link);
 	nameLink.text(answerer.user.display_name);
 
 	var userStats = result.find('.user-stats');
+	// Create an object to hold the data so I can iterate over it later.
 	var stats = Object.create(null);
-
 	stats['Reputation'] = answerer.user.reputation;
 	stats['Score'] = answerer.score;
 	stats['Posts'] = answerer.post_count;
-		console.log(stats);
-
+	// Iterate and append the selected credentials to the list.
 	for (var prop in stats) {
-		userStats.append('<li><span>' + prop + ': </span>' + stats.prop +'</li>');
+		userStats.append('<li><span>' + prop + ': </span>' + stats[prop] +'</li>');
 	}
 	return result;
 }
-
 
 // this function takes the results object from StackOverflow
 // and returns the number of results and tags to be appended to DOM
@@ -110,26 +103,28 @@ var getUnanswered = function(tags) {
 	});
 };
 
+// Function to request the top answerers for a tag on stackoverflow.
 function getTopAnswerers(tag) {
 	var request = {
-		tags: tag,
+		tag: tag,
 		site: 'stackoverflow',
 		period: 'all_time'
 	};
-
-	var apiUrl = 'https://api.stackexchange.com/2.2/';
-	apiUrl += 'tags/' + request.tags;
-	apiUrl += '/top-answerers/' + request.period;
+	// Build the request url for the api.
+	var apiUrl = 'https://api.stackexchange.com/2.2/tags/'
+				+ request.tag
+				+ '/top-answerers/'
+				+ request.period;
 
 	$.ajax({
 		url: apiUrl,
-		data: {site: 'stackoverflow'},
+		data: 'site=stackoverflow',
 		dataType: "jsonp",
 		type: "GET"
 	})
 		.done(function(result){
-			console.log(result);
-			var searchResults = showSearchResults(result.tag, result.items.length);
+			var searchResults = showSearchResults(request.tag, result.items.length);
+			// Announce the tag and the number of returned results.
 			renderSearchResults(searchResults);
 
 			$.each(result.items, function(index, item) {
@@ -141,7 +136,7 @@ function getTopAnswerers(tag) {
 			var errorElem = showError(error);
 			$('.search-results').append(errorElem);
 		});
-};
+}
 
 function renderSearchResults(searchResults) {
 	$('.search-results').html(searchResults);
@@ -157,6 +152,7 @@ $(document).ready( function() {
 		getUnanswered(tags);
 	});
 
+	// Handle the event when the tag is entered and submitted.
 	$('.inspiration-getter').submit( function(e) {
 		e.preventDefault();
 		$('.results').empty();
