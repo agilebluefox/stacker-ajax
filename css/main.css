@@ -1,3 +1,8 @@
+* {
+	/* border: 1px solid orange; */
+}
+
+
 .container {
 	margin: 3em auto;
 	width: 600px;
@@ -31,14 +36,37 @@
 	clear: both;
 }
 
-.inspiration { 
+.inspiration {
 	margin-left: 3em;
 }
 
 .result {
 	border: 1px solid black;
 	padding: 5px;
-	margin: 0 auto 1em auto;
+	margin: 1em auto 0 auto;
+}
+
+div.user-info {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.user-image {
+	display: inline-block;
+}
+
+.user-stats {
+	display: inline-block;
+	margin-top: 1rem;
+}
+
+.user-stats li {
+	list-style-type: none;
+}
+
+h2.name {
+	margin: 0;
+	text-align: center;
 }
 
 .error {
