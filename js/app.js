@@ -107,7 +107,6 @@ var getUnanswered = function(tags) {
 function getTopAnswerers(tag) {
 	var request = {
 		tag: tag,
-		site: 'stackoverflow',
 		period: 'all_time'
 	};
 	// Build the request url for the api.
@@ -118,24 +117,24 @@ function getTopAnswerers(tag) {
 
 	$.ajax({
 		url: apiUrl,
-		data: 'site=stackoverflow',
+		data: {site: 'stackoverflow'},
 		dataType: "jsonp",
 		type: "GET"
 	})
-		.done(function(result){
-			var searchResults = showSearchResults(request.tag, result.items.length);
-			// Announce the tag and the number of returned results.
-			renderSearchResults(searchResults);
+	.done(function(result){
+		var searchResults = showSearchResults(request.tag, result.items.length);
+		// Announce the tag and the number of returned results.
+		renderSearchResults(searchResults);
 
-			$.each(result.items, function(index, item) {
-				var answerer = showAnswerer(item);
-				$('.results').append(answerer);
-			});
-		})
-		.fail(function(jqXHR, error){ //this waits for the ajax to return with an error promise object
-			var errorElem = showError(error);
-			$('.search-results').append(errorElem);
+		$.each(result.items, function(index, item) {
+			var answerer = showAnswerer(item);
+			$('.results').append(answerer);
 		});
+	})
+	.fail(function(jqXHR, error){ //this waits for the ajax to return with an error promise object
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
 }
 
 function renderSearchResults(searchResults) {
